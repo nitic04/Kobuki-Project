@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kobuki Control</title>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var socket = io();
+
+            function sendCommand(command) {
+                if (socket.connected) {
+                    socket.send(command);
+                } else {
+                    console.error('WebSocket is not connected.');
+                }
+            }
+
+            document.getElementById('up').addEventListener('click', function() {
+                sendCommand('UP');
+            });
+
+            document.getElementById('down').addEventListener('click', function() {
+                sendCommand('DOWN');
+            });
+
+            document.getElementById('left').addEventListener('click', function() {
+                sendCommand('LEFT');
+            });
+
+            document.getElementById('right').addEventListener('click', function() {
+                sendCommand('RIGHT');
+            });
+
+            document.getElementById('stop').addEventListener('click', function() {
+                sendCommand('STOP');
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Kobuki Control</h1>
+    <button id="up">Move Up</button>
+    <button id="down">Move Down</button>
+    <button id="left">Turn Left</button>
+    <button id="right">Turn Right</button>
+    <button id="stop">Stop</button>
+</body>
+</html>
