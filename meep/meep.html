@@ -4,179 +4,65 @@
     <title>
         UTM Robotics Controller
     </title>
+    <script src="https://cdn.jsdelivr.net/npm/html5-joystick@2.0.0/joy.min.js"
+            async=false defer=false></script>
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
 </head>
-<body  style="position: fixed; font-family: 'Trebuchet MS', sans-serif; color:#808080; font-size: xx-large;">
-    <div style="position: relative;">
-        <h2 style="text-align: center;">UTM Robotics Controller</h1>
-        <p style="text-align: center;">
-            X: <span id="x_coordinate">0</span>
-            Y: <span id="y_coordinate">0</span>
-            Speed: <span id="speed">0</span> %
-            Angle: <span id="angle">0</span>
-        </p>
-        <canvas id="canvas" name="game"></canvas>
-    </div>
+<body style="position: fixed; width:100%; height: 100%; font-family: 'Trebuchet MS', sans-serif; color:#808080; font-size: xx-large; display: flex; flex-direction: column; align-items: center;">
+<div style="text-align: center; width: 100%;">
+    <h1 style="text-align: center;">UTM Robotics Controller</h1>
+    <p style="text-align: center;">
+        X: <span id="x_coordinate">0</span>
+        Y: <span id="y_coordinate">0</span>
+        Speed: <span id="speed">0</span> %
+        Angle: <span id="angle">0</span>
+    </p>
+</div>
 
-    <!-- Stop Button -->
-    <div style="margin-left: 415px;">
-        <button id="stopButton" style="padding: 20px 40px; font-size: large; background-color: #007BFF; color:#ffffff; border: none; border-radius: 10px; cursor: pointer;">Stop</button>
-    </div>
+<div id="joy1Div" style="width: 600px; height: 600px;"></div>
+
+
+<!-- Stop Button -->
+<div style="text-align: center;">
+    <button id="stopButton"
+            style="padding: 20px 40px; font-size: large; background-color: red; color:#ffffff; border: none; border-radius: 10px; cursor: pointer;">
+        Stop
+    </button>
+
     <script>
-        var canvas, ctx;
+        var script = document.createElement('script');
+        script.src = "https://cdn.jsdelivr.net/npm/html5-joystick@2.0.0/joy.min.js";
+        script.async = false;
+        script.defer = false;
+        script.addEventListener("load", function () {
+            console.log('Joystick script loaded');
+            var Joy1 = new JoyStick('joy1Div', {}, function (stickData) {
+                // console.log(stickData);
+                var x = stickData.x;
+                var y = stickData.y;
+                // make sure x and y are in the range of -100 to 100 and valid integers
+                x = Math.min(100, Math.max(-100, x));
+                y = Math.min(100, Math.max(-100, y));
+                var speed = Math.round(Math.sqrt(x * x + y * y) * 100);
+                var angle = Math.round(Math.atan2(y, x) * 180 / Math.PI);
+                document.getElementById('x_coordinate').innerText = x;
+                document.getElementById('y_coordinate').innerText = y;
+                document.getElementById('speed').innerText = speed;
+                document.getElementById('angle').innerText = angle;
+                socket.emit('joystick_move', {x: x, y: y});
+            });
 
-        window.addEventListener('load', () => {
-
-            canvas = document.getElementById('canvas');
-            ctx = canvas.getContext('2d');          
-            resize(); 
-
-            document.addEventListener('mousedown', startDrawing);
-            document.addEventListener('mouseup', stopDrawing);
-            document.addEventListener('mousemove', Draw);
-
-            document.addEventListener('touchstart', startDrawing);
-            document.addEventListener('touchend', stopDrawing);
-            document.addEventListener('touchcancel', stopDrawing);
-            document.addEventListener('touchmove', Draw);
-            window.addEventListener('resize', resize);
-
-            document.getElementById("x_coordinate").innerText = 0;
-            document.getElementById("y_coordinate").innerText = 0;
-            document.getElementById("speed").innerText = 0;
-            document.getElementById("angle").innerText = 0;
-
-            document.getElementById('stopButton').addEventListener('click', stopRobot);
-
-        }); 
-
-        var width, height, radius, x_orig, y_orig;
-        function resize() {
-            width = window.innerWidth;
-            radius = 100;
-            height = radius * 7;
-            ctx.canvas.width = width;
-            ctx.canvas.height = height - 200;
-            background();
-            joystick(width / 2, height / 3);
-        }
-
-        function background() {
-            x_orig = width / 2;
-            y_orig = height / 3;
-
-            ctx.beginPath();
-            ctx.arc(x_orig, y_orig, radius + 20, 0, Math.PI * 2, true);
-            ctx.fillStyle = '#ECE5E5';
-            ctx.fill();
-        }
-
-        function joystick(width, height) {
-            ctx.beginPath();
-            ctx.arc(width, height, radius, 0, Math.PI * 2, true);
-            ctx.fillStyle = '#007BFF';
-            ctx.fill();
-            ctx.strokeStyle = '#0056b3';
-            ctx.lineWidth = 8;
-            ctx.stroke();
-        }
-
-        let coord = { x: 0, y: 0 };
-        let paint = false;
-
-        function getPosition(event) {
-            var mouse_x = event.clientX || (event.touches && event.touches[0].clientX);
-            var mouse_y = event.clientY || (event.touches && event.touches[0].clientY);
-            
-            if (mouse_x !== undefined && mouse_y !== undefined) {
-                coord.x = mouse_x - canvas.offsetLeft;
-                coord.y = mouse_y - canvas.offsetTop;
-            }
-        }
-
-
-        function is_it_in_the_circle() {
-            var current_radius = Math.sqrt(Math.pow(coord.x - x_orig, 2) + Math.pow(coord.y - y_orig, 2));
-            if (radius >= current_radius) return true
-            else return false
-        }
-
-        function startDrawing(event) {
-            paint = true;
-            getPosition(event);
-            if (is_it_in_the_circle()) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                background();
-                joystick(coord.x, coord.y);
-                Draw(event);
-            }
-        }
-
-        function stopDrawing() {
-            paint = false;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            background();
-            joystick(width / 2, height / 3);
-            document.getElementById("x_coordinate").innerText = 0;
-            document.getElementById("y_coordinate").innerText = 0;
-            document.getElementById("speed").innerText = 0;
-            document.getElementById("angle").innerText = 0;
-        }
+        });
+        head = document.head || document.getElementsByTagName('head')[0];
+        head.insertBefore(script, head.firstChild);
 
         var socket = io();
 
-        function Draw(event) {
-
-            if (paint) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                background();
-                getPosition(event);
-                var angle_in_degrees,x, y, speed;
-                var angle = Math.atan2((coord.y - y_orig), (coord.x - x_orig));
-
-                if (Math.sign(angle) == -1) {
-                    angle_in_degrees = Math.round(-angle * 180 / Math.PI);
-                }
-                else {
-                    angle_in_degrees =Math.round( 360 - angle * 180 / Math.PI);
-                }
-
-
-                if (is_it_in_the_circle()) {
-                    joystick(coord.x, coord.y);
-                    x = coord.x;
-                    y = coord.y;
-                }
-                else {
-                    x = radius * Math.cos(angle) + x_orig;
-                    y = radius * Math.sin(angle) + y_orig;
-                    joystick(x, y);
-                }
-
-            
-                getPosition(event);
-
-                var speed = Math.round(100 * Math.sqrt(Math.pow(x - x_orig, 2) + Math.pow(y - y_orig, 2)) / radius);
-
-                var x_relative = Math.round(x - x_orig);
-                var y_relative = Math.round(y - y_orig);
-                
-
-                document.getElementById("x_coordinate").innerText = x_relative;
-                document.getElementById("y_coordinate").innerText = y_relative;
-                document.getElementById("speed").innerText = speed;
-                document.getElementById("angle").innerText = angle_in_degrees;
-
-                console.log(socket.connected);
-                console.log(speed, angle);
-                socket.emit('joystick_move', {botspeed: speed, botradius: angle_in_degrees});
-            }
-        }
 
         function stopRobot() {
             // Send stop command to the robot
-            socket.emit('joystick_move', {botspeed: 0, botradius: 0});
-            socket.emit('joystick_move', {botspeed: 0, botradius: 0});
+            socket.emit('joystick_move', {x: 0, y: 0});
+            socket.emit('joystick_move', {x: 0, y: 0});
             stopDrawing();
         }
     </script>
