@@ -39,10 +39,6 @@ seri = getKobukiPort()
 def index():
     return send_from_directory('.', 'meep.html')
 
-@app.route('/joy.min.js')
-def joy():
-    return send_from_directory('.', 'joy.min.js')
-
 @socketio.on('joystick_move')
 def joystick_move(data):
     x = data['x']
