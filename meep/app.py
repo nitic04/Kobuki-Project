@@ -56,6 +56,8 @@ def joystick_move(data):
         # pure rotation
         speed = (x* 1.91986 /100) * wheelbase / 2 #  1.91986 rad/s is the max angular speed of the robot, x is from -100 to 100
         radius = 1 if x > 0 else -1
+
+        speed *= -radius
     else:
         # translation + rotation
         radius = math.atan(x / y)
