@@ -42,12 +42,13 @@ def index():
 
 target_x = 0
 target_y = 0
-acceleration = 0.01 # x and y change per ms
+acceleration = 0.05 # x and y change per ms
 @socketio.on('joystick_move')
 def handle_joystick_move(data):
     x = data['x']
     y = data['y']
-
+    y = max(min(y, 100), -100)
+    x = max(min(x, 100), -100)
     global target_x
     global target_y
     target_x = x
@@ -83,7 +84,7 @@ def joystick_move(x, y):
             # Speed * (Radius - b / 2 ) / Radius, if Radius < -1
             speed = speed * (radius - wheelbase / 2) / (2 * radius)
 
-    send_move_command(speed, radius)
+    send_move_command(min(max(speed, -32768),32767), radius)
 
 def send_move_command(botspeed, botradius):
     print(f'Sending move command with speed {botspeed} and radius {botradius}')
@@ -126,12 +127,16 @@ def robot_loop():
         delta = now - last_update
         if delta > update_time:
             if current_x != target_x:
-                if current_x < target_x:
+                if current_x - target_x < acceleration*delta:
+                    current_x = target_x
+                elif current_x < target_x:
                     current_x += acceleration * delta
                 else:
                     current_x -= acceleration * delta
             if current_y != target_y:
-                if current_y < target_y:
+                if current_y - target_y < acceleration*delta:
+                    current_y = target_y
+                elif current_y < target_y:
                     current_y += acceleration * delta
                 else:
                     current_y -= acceleration * delta
