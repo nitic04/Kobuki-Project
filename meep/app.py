@@ -39,10 +39,22 @@ seri = getKobukiPort()
 def index():
     return send_from_directory('.', 'meep.html')
 
+
+target_x = 0
+target_y = 0
+acceleration = 0.01 # x and y change per ms
 @socketio.on('joystick_move')
-def joystick_move(data):
+def handle_joystick_move(data):
     x = data['x']
     y = data['y']
+
+    global target_x
+    global target_y
+    target_x = x
+    target_y = y
+
+def joystick_move(x, y):
+
     wheelbase = 0.230 * 1000 # 230 mm
     if -20 < x < 20 and -20 < y < 20:
         # stop
@@ -98,7 +110,40 @@ def send_move_command(botspeed, botradius):
 
     # Sends the data via the serial port
     seri.write(barr)
+    
+    
+def robot_loop():
+    current_x = 0
+    current_y = 0
+    last_update = 0
+    update_time = 5 # in ms
+
+    while True:
+        if int.from_bytes(seri.read(2), byteorder='little') == 333:
+            __temp = seri.read(200)
+
+        now = time.time() * 1000
+        delta = now - last_update
+        if delta > update_time:
+            if current_x != target_x:
+                if current_x < target_x:
+                    current_x += acceleration * delta
+                else:
+                    current_x -= acceleration * delta
+            if current_y != target_y:
+                if current_y < target_y:
+                    current_y += acceleration * delta
+                else:
+                    current_y -= acceleration * delta
+
+        if current_x != target_x or current_y != target_y:
+            joystick_move(current_x, current_y)
+
+        last_update = now
+
 
 
 if __name__ == '__main__':
+    import threading
+    threading.Thread(target=robot_loop).start()
     socketio.run(app, host='0.0.0.0', port=8000)
