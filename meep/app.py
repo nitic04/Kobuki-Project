@@ -75,9 +75,10 @@ def joystick_move(x, y):
         speed *= -radius
     else:
         # translation + rotation
-        radius = math.atan(x / y)
+        # radius = math.atan(x / y)
         # normalize the radius
-        radius = radius / (math.pi / 2)
+        # radius = radius / (math.pi / 2)
+        radius = 500
         speed = y * 700/100 # 700 mm/s is the max speed of the robot, y is from -100 to 100
         if radius >= 0:
             # Speed * (Radius + b) / 2 ) / Radius, if Radius > 1
