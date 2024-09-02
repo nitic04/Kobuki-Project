@@ -54,6 +54,8 @@ def handle_joystick_move(data):
     target_x = x
     target_y = y
 
+    joystick_move(x,y)
+
 def joystick_move(x, y):
 
     wheelbase = 0.230 * 1000 # 230 mm
@@ -113,42 +115,42 @@ def send_move_command(botspeed, botradius):
     seri.write(barr)
     
     
-def robot_loop():
-    current_x = 0
-    current_y = 0
-    last_update = 0
-    update_time = 5 # in ms
+# def robot_loop():
+#     current_x = 0
+#     current_y = 0
+#     last_update = 0
+#     update_time = 5 # in ms
 
-    while True:
+#     while True:
        # if int.from_bytes(seri.read(2), byteorder='little') == 333:
        #     __temp = seri.read(200)
 
-        now = time.time() * 1000
-        delta = now - last_update
-        if delta > update_time:
-            if current_x != target_x:
-                if current_x - target_x < acceleration*delta:
-                    current_x = target_x
-                elif current_x < target_x:
-                    current_x += acceleration * delta
-                else:
-                    current_x -= acceleration * delta
-            if current_y != target_y:
-                if current_y - target_y < acceleration*delta:
-                    current_y = target_y
-                elif current_y < target_y:
-                    current_y += acceleration * delta
-                else:
-                    current_y -= acceleration * delta
+        # now = time.time() * 1000
+        # delta = now - last_update
+        # if delta > update_time:
+        #     if current_x != target_x:
+        #         if current_x - target_x < acceleration*delta:
+        #             current_x = target_x
+        #         elif current_x < target_x:
+        #             current_x += acceleration * delta
+        #         else:
+        #             current_x -= acceleration * delta
+        #     if current_y != target_y:
+        #         if current_y - target_y < acceleration*delta:
+        #             current_y = target_y
+        #         elif current_y < target_y:
+        #             current_y += acceleration * delta
+        #         else:
+        #             current_y -= acceleration * delta
 
-        if current_x != target_x or current_y != target_y:
-            joystick_move(current_x, current_y)
+        # if current_x != target_x or current_y != target_y:
+        #     joystick_move(current_x, current_y)
 
-        last_update = now
+        # last_update = now
 
 
 
 if __name__ == '__main__':
     import threading
-    threading.Thread(target=robot_loop).start()
+    # threading.Thread(target=robot_loop).start()
     socketio.run(app, host='0.0.0.0', port=8000, allow_unsafe_werkzeug=True)
