@@ -63,11 +63,11 @@ def joystick_move(x, y):
         # stop
         speed = 0
         radius = 0
-    elif -20 < x < 20:
+    elif -50 < x < 50:
         # pure translation
         speed = y * 700/100 # 700 mm/s is the max speed of the robot, y is from -100 to 100
         radius = 0
-    elif -20 < y < 20:
+    elif -50 < y < 50:
         # pure rotation
         speed = (x* 1.91986 /100) * wheelbase / 2 #  1.91986 rad/s is the max angular speed of the robot, x is from -100 to 100
         radius = 1 if x > 0 else -1
