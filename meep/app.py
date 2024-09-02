@@ -120,8 +120,8 @@ def robot_loop():
     update_time = 5 # in ms
 
     while True:
-        if int.from_bytes(seri.read(2), byteorder='little') == 333:
-            __temp = seri.read(200)
+       # if int.from_bytes(seri.read(2), byteorder='little') == 333:
+       #     __temp = seri.read(200)
 
         now = time.time() * 1000
         delta = now - last_update
