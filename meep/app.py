@@ -79,7 +79,7 @@ def joystick_move(x, y):
         radius = math.atan(x / y)
         # normalize the radius
         # radius = ((math.pi / 2)/radius) * 1000
-        radius = math.copysign(200, radius)
+        radius = -math.copysign(200, radius)
         speed = y * 700/100 # 700 mm/s is the max speed of the robot, y is from -100 to 100
         if radius >= 0:
             # Speed * (Radius + b) / 2 ) / Radius, if Radius > 1
@@ -89,7 +89,6 @@ def joystick_move(x, y):
             speed = speed * (radius - wheelbase / 2) / (2 * radius)
 
     send_move_command(min(max(speed, -32768),32767), radius)
-
 
 def send_move_command(botspeed, botradius):
     print(f'Sending move command with speed {botspeed} and radius {botradius}')
