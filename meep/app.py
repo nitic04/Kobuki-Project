@@ -151,8 +151,20 @@ def send_move_command(botspeed, botradius):
         # last_update = now
 
 
+import socket
+import requests
+def heartbeat():
+    while True:
+        url = 'https://soccer.connectarapp.co/connect'
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # connect() for UDP doesn't send packets
+        s.connect(('10.0.0.0', 0))
+        ip = s.getsockname()[0]
+
+        requests.post(url, json={'ip': ip})
+        time.sleep(60)
 
 if __name__ == '__main__':
     import threading
-    # threading.Thread(target=robot_loop).start()
+    threading.Thread(target=heartbeat).start()
     socketio.run(app, host='0.0.0.0', port=8000, allow_unsafe_werkzeug=True)
